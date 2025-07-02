@@ -3,9 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>The Grand Library - A Haven for Readers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to enhance the library theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* A very light cream background */
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Lora', serif;
+        }
+        .bg-library-hero {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .book-cover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .book-cover:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
-<body>
-    
+<body class="text-gray-800">
+
+    <!-- Header Section -->
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#" class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-800" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 005.5 16c1.255 0 2.443-.29 3.5-.804V4.804zM14.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 0014.5 16c1.255 0 2.443-.29 3.5-.804v-10A7.968 7.968 0 0014.5 4z" />
+                </svg>
+                <span class="text-2xl font-bold text-amber-900 font-serif">The Grand Library</span>
+            </a>
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#" class="text-gray-700 hover:text-amber-800 transition">Home</a>
+                <a href="#" class="text-gray-700 hover:text-amber-800 transition">Catalog</a>
+                <a href="#" class="text-gray-700 hover:text-amber-800 transition">Events</a>
+                <a href="#" class="text-gray-700 hover:text-amber-800 transition">About Us</a>
+                <a href="#" class="bg-amber-800 text-white px-4 py-2 rounded-full hover:bg-amber-900 transition shadow">Visit</a>
+            </nav>
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-amber-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">Home</a>
+            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">Catalog</a>
+            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">Events</a>
+            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">About Us</a>
+            <a href="#" class="block mt-2 bg-amber-800 text-white px-4 py-2 rounded-full hover:bg-amber-900 transition text-center">Visit</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="bg-library-hero text-white py-24 sm:py-32 md:py-40">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 leading-tight">Where Every Page is a New Adventure.</h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8">Discover worlds of knowledge, stories that inspire, and a community of fellow readers. Your journey begins here.</p>
+                <div class="flex justify-center">
+                     <a href="#" class="bg-amber-600 text-white font-bold py-3 px-8 rounded-full hover:bg-amber-700 transition-transform transform hover:scale-105 text-lg shadow-lg">Explore the Catalog</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Books Section -->
+        <section class="py-16 sm:py-24 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-amber-900 mb-12">New & Noteworthy</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                    <!-- Book Item 1 -->
+                    <div class="text-center">
+                        <img src="https://placehold.co/300x450/a3744b/ffffff?text=The+Midnight+Library" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/a3744b/ffffff?text=Book+Cover';">
+                        <h3 class="font-bold text-lg">The Midnight Library</h3>
+                        <p class="text-sm text-gray-600">Matt Haig</p>
+                    </div>
+                    <!-- Book Item 2 -->
+                    <div class="text-center">
+                        <img src="https://placehold.co/300x450/5a6a7a/ffffff?text=Project+Hail+Mary" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/5a6a7a/ffffff?text=Book+Cover';">
+                        <h3 class="font-bold text-lg">Project Hail Mary</h3>
+                        <p class="text-sm text-gray-600">Andy Weir</p>
+                    </div>
+                    <!-- Book Item 3 -->
+                    <div class="text-center">
+                        <img src="https://placehold.co/300x450/8a5d5d/ffffff?text=The+Vanishing+Half" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/8a5d5d/ffffff?text=Book+Cover';">
+                        <h3 class="font-bold text-lg">The Vanishing Half</h3>
+                        <p class="text-sm text-gray-600">Brit Bennett</p>
+                    </div>
+                    <!-- Book Item 4 -->
+                    <div class="text-center">
+                        <img src="https://placehold.co/300x450/4a6b5d/ffffff?text=Klara+and+the+Sun" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/4a6b5d/ffffff?text=Book+Cover';">
+                        <h3 class="font-bold text-lg">Klara and the Sun</h3>
+                        <p class="text-sm text-gray-600">Kazuo Ishiguro</p>
+                    </div>
+                    <!-- Book Item 5 -->
+                    <div class="text-center">
+                        <img src="https://placehold.co/300x450/78716c/ffffff?text=Dune" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/78716c/ffffff?text=Book+Cover';">
+                        <h3 class="font-bold text-lg">Dune</h3>
+                        <p class="text-sm text-gray-600">Frank Herbert</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section class="py-16 sm:py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-amber-900 mb-12">Upcoming Events</h2>
+                <div class="max-w-4xl mx-auto space-y-8">
+                    <!-- Event Item 1 -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 hover:shadow-xl transition-shadow">
+                        <div class="text-center sm:text-left">
+                            <p class="text-amber-800 font-bold text-lg">JUL</p>
+                            <p class="text-3xl font-bold">15</p>
+                        </div>
+                        <div class="border-l-4 border-amber-700 pl-6 flex-grow">
+                            <h3 class="text-xl font-bold mb-1">Author Talk: Sarah Penner</h3>
+                            <p class="text-gray-600 mb-2">Join us for a discussion with the bestselling author of "The Lost Apothecary".</p>
+                            <p class="text-sm text-gray-500">7:00 PM - 8:30 PM | Main Reading Hall</p>
+                        </div>
+                        <a href="#" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-full hover:bg-amber-800 hover:text-white transition whitespace-nowrap">Learn More</a>
+                    </div>
+                    <!-- Event Item 2 -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 hover:shadow-xl transition-shadow">
+                         <div class="text-center sm:text-left">
+                            <p class="text-amber-800 font-bold text-lg">JUL</p>
+                            <p class="text-3xl font-bold">22</p>
+                        </div>
+                        <div class="border-l-4 border-amber-700 pl-6 flex-grow">
+                            <h3 class="text-xl font-bold mb-1">Summer Reading Challenge Finale</h3>
+                            <p class="text-gray-600 mb-2">Celebrate the end of our summer reading challenge with prizes, games, and ice cream!</p>
+                            <p class="text-sm text-gray-500">2:00 PM - 4:00 PM | Children's Wing</p>
+                        </div>
+                        <a href="#" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-full hover:bg-amber-800 hover:text-white transition whitespace-nowrap">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-amber-900 text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+                <!-- About -->
+                <div>
+                    <h4 class="text-xl font-serif font-bold mb-4">The Grand Library</h4>
+                    <p class="text-amber-200">123 Knowledge Avenue<br>Booksville, BK 12345</p>
+                    <p class="text-amber-200 mt-2">(123) 456-7890</p>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-xl font-serif font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-amber-200 hover:text-white transition">Search the Catalog</a></li>
+                        <li><a href="#" class="text-amber-200 hover:text-white transition">My Account</a></li>
+                        <li><a href="#" class="text-amber-200 hover:text-white transition">Library Events</a></li>
+                        <li><a href="#" class="text-amber-200 hover:text-white transition">Contact Us</a></li>
+                    </ul>
+                </div>
+                <!-- Hours -->
+                <div>
+                    <h4 class="text-xl font-serif font-bold mb-4">Hours</h4>
+                    <ul class="space-y-2 text-amber-200">
+                        <li>Mon - Fri: 9am - 9pm</li>
+                        <li>Saturday: 10am - 6pm</li>
+                        <li>Sunday: 1pm - 5pm</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-amber-800 mt-10 pt-6 text-center text-amber-300 text-sm">
+                <p>&copy; 2024 The Grand Library. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+
 </body>
 </html>
