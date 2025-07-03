@@ -3,205 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Grand Library - A Haven for Readers</title>
+    <title>Interactive PLY Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles to enhance the library theme */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #FDFBF7; /* A very light cream background */
+        /* Ensures the canvas and sidebar take up the full screen height */
+        body { margin: 0; overflow: hidden; font-family: sans-serif; }
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
         }
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Lora', serif;
+        #sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 350px; /* Adjust width as needed */
+            height: 100vh;
+            background-color: rgba(17, 24, 39, 0.9); /* Dark background with some transparency */
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+            border-right: 1px solid #374151; /* Dark border */
         }
-        .bg-library-hero {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
+        /* Style for the loading text */
+        #loader {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #d1d5db; /* Light gray text for dark mode */
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+            text-shadow: 1px 1px 2px black;
         }
-        .book-cover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        /* Custom scrollbar for the sidebar */
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
         }
-        .book-cover:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        #sidebar::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 20px;
+            border: 3px solid #1f2937;
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="bg-gray-900">
 
-    <!-- Header Section -->
-    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <!-- Logo -->
-            <a href="#" class="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-800" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 005.5 16c1.255 0 2.443-.29 3.5-.804V4.804zM14.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 0014.5 16c1.255 0 2.443-.29 3.5-.804v-10A7.968 7.968 0 0014.5 4z" />
-                </svg>
-                <span class="text-2xl font-bold text-amber-900 font-serif">The Grand Library</span>
-            </a>
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center space-x-8">
-                <a href="#" class="text-gray-700 hover:text-amber-800 transition">Home</a>
-                <a href="#" class="text-gray-700 hover:text-amber-800 transition">Catalog</a>
-                <a href="#" class="text-gray-700 hover:text-amber-800 transition">Events</a>
-                <a href="#" class="text-gray-700 hover:text-amber-800 transition">About Us</a>
-                <a href="#" class="bg-amber-800 text-white px-4 py-2 rounded-full hover:bg-amber-900 transition shadow">Visit</a>
-            </nav>
-            <!-- Mobile Menu Button -->
-            <button id="mobile-menu-button" class="md:hidden text-amber-800">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-            </button>
-        </div>
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
-            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">Home</a>
-            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">Catalog</a>
-            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">Events</a>
-            <a href="#" class="block py-2 text-gray-700 hover:text-amber-800">About Us</a>
-            <a href="#" class="block mt-2 bg-amber-800 text-white px-4 py-2 rounded-full hover:bg-amber-900 transition text-center">Visit</a>
-        </div>
-    </header>
+    <!-- Sidebar for the clickable list of files -->
+    <div id="sidebar" class="p-4">
+        <h1 class="text-2xl font-bold mb-4 text-white">PLY Model Library</h1>
+        <ul id="model-list" class="space-y-2">
+            <!-- The list of your .ply files will be dynamically generated here by JavaScript -->
+        </ul>
+    </div>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Hero Section -->
-        <section class="bg-library-hero text-white py-24 sm:py-32 md:py-40">
-            <div class="container mx-auto px-6 text-center">
-                <h1 class="text-4xl md:text-6xl font-bold mb-4 leading-tight">Where Every Page is a New Adventure.</h1>
-                <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8">Discover worlds of knowledge, stories that inspire, and a community of fellow readers. Your journey begins here.</p>
-                <div class="flex justify-center">
-                     <a href="#" class="bg-amber-600 text-white font-bold py-3 px-8 rounded-full hover:bg-amber-700 transition-transform transform hover:scale-105 text-lg shadow-lg">Explore the Catalog</a>
-                </div>
-            </div>
-        </section>
+    <!-- This is the main container where the 3D canvas will live -->
+    <div id="canvas-container"></div>
+    
+    <!-- A simple text element to show when a model is loading -->
+    <div id="loader">Loading Model...</div>
 
-        <!-- Featured Books Section -->
-        <section class="py-16 sm:py-24 bg-white">
-            <div class="container mx-auto px-6">
-                <h2 class="text-3xl md:text-4xl font-bold text-center text-amber-900 mb-12">New & Noteworthy</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                    <!-- Book Item 1 -->
-                    <div class="text-center">
-                        <img src="https://placehold.co/300x450/a3744b/ffffff?text=The+Midnight+Library" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/a3744b/ffffff?text=Book+Cover';">
-                        <h3 class="font-bold text-lg">The Midnight Library</h3>
-                        <p class="text-sm text-gray-600">Matt Haig</p>
-                    </div>
-                    <!-- Book Item 2 -->
-                    <div class="text-center">
-                        <img src="https://placehold.co/300x450/5a6a7a/ffffff?text=Project+Hail+Mary" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/5a6a7a/ffffff?text=Book+Cover';">
-                        <h3 class="font-bold text-lg">Project Hail Mary</h3>
-                        <p class="text-sm text-gray-600">Andy Weir</p>
-                    </div>
-                    <!-- Book Item 3 -->
-                    <div class="text-center">
-                        <img src="https://placehold.co/300x450/8a5d5d/ffffff?text=The+Vanishing+Half" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/8a5d5d/ffffff?text=Book+Cover';">
-                        <h3 class="font-bold text-lg">The Vanishing Half</h3>
-                        <p class="text-sm text-gray-600">Brit Bennett</p>
-                    </div>
-                    <!-- Book Item 4 -->
-                    <div class="text-center">
-                        <img src="https://placehold.co/300x450/4a6b5d/ffffff?text=Klara+and+the+Sun" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/4a6b5d/ffffff?text=Book+Cover';">
-                        <h3 class="font-bold text-lg">Klara and the Sun</h3>
-                        <p class="text-sm text-gray-600">Kazuo Ishiguro</p>
-                    </div>
-                    <!-- Book Item 5 -->
-                    <div class="text-center">
-                        <img src="https://placehold.co/300x450/78716c/ffffff?text=Dune" alt="Book Cover" class="book-cover rounded-lg shadow-md mx-auto mb-4 w-full" onerror="this.onerror=null;this.src='https://placehold.co/300x450/78716c/ffffff?text=Book+Cover';">
-                        <h3 class="font-bold text-lg">Dune</h3>
-                        <p class="text-sm text-gray-600">Frank Herbert</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Events Section -->
-        <section class="py-16 sm:py-24">
-            <div class="container mx-auto px-6">
-                <h2 class="text-3xl md:text-4xl font-bold text-center text-amber-900 mb-12">Upcoming Events</h2>
-                <div class="max-w-4xl mx-auto space-y-8">
-                    <!-- Event Item 1 -->
-                    <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 hover:shadow-xl transition-shadow">
-                        <div class="text-center sm:text-left">
-                            <p class="text-amber-800 font-bold text-lg">JUL</p>
-                            <p class="text-3xl font-bold">15</p>
-                        </div>
-                        <div class="border-l-4 border-amber-700 pl-6 flex-grow">
-                            <h3 class="text-xl font-bold mb-1">Author Talk: Sarah Penner</h3>
-                            <p class="text-gray-600 mb-2">Join us for a discussion with the bestselling author of "The Lost Apothecary".</p>
-                            <p class="text-sm text-gray-500">7:00 PM - 8:30 PM | Main Reading Hall</p>
-                        </div>
-                        <a href="#" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-full hover:bg-amber-800 hover:text-white transition whitespace-nowrap">Learn More</a>
-                    </div>
-                    <!-- Event Item 2 -->
-                    <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 hover:shadow-xl transition-shadow">
-                         <div class="text-center sm:text-left">
-                            <p class="text-amber-800 font-bold text-lg">JUL</p>
-                            <p class="text-3xl font-bold">22</p>
-                        </div>
-                        <div class="border-l-4 border-amber-700 pl-6 flex-grow">
-                            <h3 class="text-xl font-bold mb-1">Summer Reading Challenge Finale</h3>
-                            <p class="text-gray-600 mb-2">Celebrate the end of our summer reading challenge with prizes, games, and ice cream!</p>
-                            <p class="text-sm text-gray-500">2:00 PM - 4:00 PM | Children's Wing</p>
-                        </div>
-                        <a href="#" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-full hover:bg-amber-800 hover:text-white transition whitespace-nowrap">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-amber-900 text-white">
-        <div class="container mx-auto px-6 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-                <!-- About -->
-                <div>
-                    <h4 class="text-xl font-serif font-bold mb-4">The Grand Library</h4>
-                    <p class="text-amber-200">123 Knowledge Avenue<br>Booksville, BK 12345</p>
-                    <p class="text-amber-200 mt-2">(123) 456-7890</p>
-                </div>
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="text-xl font-serif font-bold mb-4">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-amber-200 hover:text-white transition">Search the Catalog</a></li>
-                        <li><a href="#" class="text-amber-200 hover:text-white transition">My Account</a></li>
-                        <li><a href="#" class="text-amber-200 hover:text-white transition">Library Events</a></li>
-                        <li><a href="#" class="text-amber-200 hover:text-white transition">Contact Us</a></li>
-                    </ul>
-                </div>
-                <!-- Hours -->
-                <div>
-                    <h4 class="text-xl font-serif font-bold mb-4">Hours</h4>
-                    <ul class="space-y-2 text-amber-200">
-                        <li>Mon - Fri: 9am - 9pm</li>
-                        <li>Saturday: 10am - 6pm</li>
-                        <li>Sunday: 1pm - 5pm</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-amber-800 mt-10 pt-6 text-center text-amber-300 text-sm">
-                <p>&copy; 2024 The Grand Library. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // JavaScript for mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
+    <!-- This section imports the necessary Three.js library modules -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+            }
+        }
     </script>
 
+    <!-- This is the main JavaScript for creating and controlling the 3D canvas -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Core 3D Scene Components ---
+        let camera, scene, renderer, controls;
+        let currentModel; // This will hold the currently displayed model
+
+        // --- HTML Element References ---
+        const canvasContainer = document.getElementById('canvas-container');
+        const loaderElement = document.getElementById('loader');
+        const modelListElement = document.getElementById('model-list');
+
+        // --- Data for your models ---
+        const plyFiles = [
+            "Full_Gingerbread_House_point_cloud.ply", "Sakura_Wang_Center_point_cloud.ply", "Ben_Unbound_point_cloud.ply", "Collage_Wall_CAC_point_cloud.ply",
+            "Surfing_point_cloud.ply", "Han_Qin_point_cloud.ply", "The_Wii_point_cloud.ply", "Adelyn_Peter_point_cloud.ply", "White_Board_Gallery_point_cloud.ply",
+            "Ancient_Moose_point_cloud.ply", "Amphitheater_point_cloud.ply", "Rainbow_Tree_point_cloud.ply", "Rick_Gatteau_Wolfie_point_cloud.ply", "Dream_Ball_point_cloud.ply",
+            "Hercules_point_cloud.ply", "Safta_point_cloud.ply", "Wolfie_Photo_Opportunity_point_cloud.ply", "The_rocket_point_cloud.ply", "Rabbit_point_cloud.ply",
+            "Laz_point_cloud.ply", "French_Onion_Soup_point_cloud.ply", "Coming_Soon_point_cloud.ply", "Dogs_On_Big_Chair_point_cloud.ply", "Climber_point_cloud.ply",
+            "Lars_in_his_Habitat_point_cloud.ply", "Astronaut_point_cloud.ply", "Labor_of_LOVE_point_cloud.ply", "Yemoe_point_cloud.ply", "Vent_point_cloud.ply",
+            "Astronaut_standing_point_cloud.ply", "Bench_point_cloud.ply", "Octopus_point_cloud.ply", "Cocomelon_point_cloud.ply", "Picnic_Short_point_cloud.ply",
+            "Asuka_point_cloud.ply", "Franky_point_cloud.ply", "Reality_Deck_point_cloud.ply", "Priya_point_cloud.ply", "Juvenile_Chimpanzee_Skele_point_cloud.ply",
+            "Autumn_point_cloud.ply", "Scarlet_point_cloud.ply", "Senior_Art_Show_point_cloud.ply", "Gudetama_point_cloud.ply", "Ctrl_Art_Create_point_cloud.ply",
+            "TLL_Whiteboard_point_cloud.ply", "LI_Express_Rest_Stop_point_cloud.ply"
+        ];
+        const repoBaseUrl = "https://raw.githubusercontent.com/liamyehudai/plyLibrary/main/assets/";
+
+        // --- Main Functions ---
+
+        // 1. Initialize the entire 3D scene, camera, and renderer
+        function init() {
+            // Create the main scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111827); // Dark blue-gray background
+
+            // Set up the camera
+            camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0, 10); // Start the camera back a bit
+
+            // Set up the WebGL renderer (this draws everything)
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            canvasContainer.appendChild(renderer.domElement); // Add the renderer's canvas to the page
+
+            // Add some lighting to see the models
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // Add mouse controls (orbit, pan, zoom)
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // Makes the controls feel smoother
+
+            // Add a listener to handle browser window resizing
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // 2. Create the clickable list of files in the sidebar
+        function populateFileList() {
+            plyFiles.forEach(fileName => {
+                const displayName = fileName.replace(/_point_cloud\.ply/g, '').replace(/_/g, ' ');
+                const listItem = document.createElement('li');
+                listItem.className = 'text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer p-2 rounded-md transition-colors duration-200';
+                listItem.textContent = displayName;
+                listItem.addEventListener('click', () => loadModel(fileName));
+                modelListElement.appendChild(listItem);
+            });
+        }
+        
+        // 3. Load a specific .ply model when its name is clicked
+        function loadModel(fileName) {
+            const url = `${repoBaseUrl}${encodeURIComponent(fileName)}`;
+            const plyLoader = new PLYLoader();
+            
+            loaderElement.style.display = 'block'; // Show "Loading..." text
+            if (currentModel) {
+                scene.remove(currentModel); // Remove the old model if one exists
+            }
+
+            plyLoader.load(url, (geometry) => {
+                geometry.computeVertexNormals(); // Helps with lighting
+                
+                // If the model has its own colors, use them. Otherwise, use a default silver color.
+                const material = new THREE.MeshStandardMaterial({
+                    vertexColors: geometry.hasAttribute('color'),
+                    color: geometry.hasAttribute('color') ? 0xffffff : 0xcccccc,
+                });
+
+                currentModel = new THREE.Mesh(geometry, material);
+                scene.add(currentModel);
+
+                // Automatically center the camera on the new model
+                const box = new THREE.Box3().setFromObject(currentModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const fov = camera.fov * (Math.PI / 180);
+                const cameraDist = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                
+                camera.position.copy(center);
+                camera.position.z += cameraDist * 1.2; // Move camera back
+                controls.target.copy(center); // Point controls at the model center
+                controls.update();
+
+                loaderElement.style.display = 'none'; // Hide "Loading..." text
+            }, undefined, (error) => {
+                console.error(error);
+                loaderElement.textContent = 'Error: Could not load model.';
+            });
+        }
+
+        // 4. Handle the browser window being resized
+        function onWindowResize() {
+            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        }
+
+        // 5. The animation loop: this function runs 60 times per second to redraw the scene
+        function animate() {
+            requestAnimationFrame(animate); // Schedule the next frame
+            controls.update(); // Update camera controls
+            renderer.render(scene, camera); // Render the scene
+        }
+
+        // --- Start Everything ---
+        init();
+        animate();
+        populateFileList();
+        if (plyFiles.length > 0) {
+            loadModel(plyFiles[0]); // Load the first model in the list by default
+        }
+
+    </script>
 </body>
 </html>
