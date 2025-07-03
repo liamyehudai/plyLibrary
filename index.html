@@ -3,14 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive PLY Viewer</title>
+    <title>Interactive PLY Viewer (Babylon.js)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Babylon.js Core and Loaders -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
         /* Ensures the canvas and sidebar take up the full screen height */
         body { margin: 0; overflow: hidden; font-family: sans-serif; }
-        #canvas-container {
+        #renderCanvas {
             width: 100%;
-            height: 100vh;
+            height: 100%;
+            display: block;
+            font-size: 0;
+            touch-action: none;
         }
         #sidebar {
             position: absolute;
@@ -22,6 +28,7 @@
             backdrop-filter: blur(8px);
             overflow-y: auto;
             border-right: 1px solid #374151; /* Dark border */
+            z-index: 10;
         }
         /* Style for the loading text */
         #loader {
@@ -34,6 +41,7 @@
             font-weight: bold;
             display: none; /* Hidden by default */
             text-shadow: 1px 1px 2px black;
+            z-index: 20;
         }
         /* Custom scrollbar for the sidebar */
         #sidebar::-webkit-scrollbar {
@@ -54,41 +62,27 @@
     <!-- Sidebar for the clickable list of files -->
     <div id="sidebar" class="p-4">
         <h1 class="text-2xl font-bold mb-4 text-white">PLY Model Library</h1>
+        <h2 class="text-lg font-semibold mb-4 text-gray-400">Powered by Babylon.js</h2>
         <ul id="model-list" class="space-y-2">
-            <!-- The list of your .ply files will be dynamically generated here by JavaScript -->
+            <!-- The list of your .ply files will be dynamically generated here -->
         </ul>
     </div>
 
     <!-- This is the main container where the 3D canvas will live -->
-    <div id="canvas-container"></div>
+    <canvas id="renderCanvas"></canvas>
     
     <!-- A simple text element to show when a model is loading -->
     <div id="loader">Loading Model...</div>
 
-    <!-- This section imports the necessary Three.js library modules -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
-            }
-        }
-    </script>
-
     <!-- This is the main JavaScript for creating and controlling the 3D canvas -->
-    <script type="module">
-        import * as THREE from 'three';
-        import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-        // --- Core 3D Scene Components ---
-        let camera, scene, renderer, controls;
-        let currentModel; // This will hold the currently displayed model
-
+    <script>
         // --- HTML Element References ---
-        const canvasContainer = document.getElementById('canvas-container');
+        const canvas = document.getElementById('renderCanvas');
         const loaderElement = document.getElementById('loader');
         const modelListElement = document.getElementById('model-list');
+
+        // --- Core Babylon.js Components ---
+        let engine, scene, camera, currentModelMeshes = [];
 
         // --- Data for your models ---
         const plyFiles = [
@@ -107,34 +101,34 @@
 
         // --- Main Functions ---
 
-        // 1. Initialize the entire 3D scene, camera, and renderer
-        function init() {
-            // Create the main scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x111827); // Dark blue-gray background
+        // 1. Initialize the Babylon.js engine, scene, and camera
+        async function init() {
+            engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.067, 0.094, 0.153, 1); // Dark blue-gray background
 
-            // Set up the camera
-            camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
-            camera.position.set(0, 0, 10); // Start the camera back a bit
+            camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 10, new BABYLON.Vector3(0, 0, 0), scene);
+            camera.attachControl(canvas, true);
+            camera.wheelDeltaPercentage = 0.01;
 
-            // Set up the WebGL renderer (this draws everything)
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-            canvasContainer.appendChild(renderer.domElement); // Add the renderer's canvas to the page
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 1.2;
 
-            // Add some lighting to see the models
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            directionalLight.position.set(5, 10, 7.5);
-            scene.add(directionalLight);
+            populateFileList();
+            
+            const modelToLoad = getModelFromURL() || (plyFiles.length > 0 ? plyFiles[0] : null);
+            if (modelToLoad) {
+                await loadModel(modelToLoad);
+                updateURL(modelToLoad); 
+            }
 
-            // Add mouse controls (orbit, pan, zoom)
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true; // Makes the controls feel smoother
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
 
-            // Add a listener to handle browser window resizing
-            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener("resize", () => {
+                engine.resize();
+            });
         }
 
         // 2. Create the clickable list of files in the sidebar
@@ -144,74 +138,84 @@
                 const listItem = document.createElement('li');
                 listItem.className = 'text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer p-2 rounded-md transition-colors duration-200';
                 listItem.textContent = displayName;
-                listItem.addEventListener('click', () => loadModel(fileName));
+                listItem.addEventListener('click', () => {
+                    loadModel(fileName);
+                    updateURL(fileName);
+                });
                 modelListElement.appendChild(listItem);
             });
         }
-        
+
         // 3. Load a specific .ply model when its name is clicked
-        function loadModel(fileName) {
-            const url = `${repoBaseUrl}${encodeURIComponent(fileName)}`;
-            const plyLoader = new PLYLoader();
+        async function loadModel(fileName) {
+            const url = repoBaseUrl;
             
-            loaderElement.style.display = 'block'; // Show "Loading..." text
-            if (currentModel) {
-                scene.remove(currentModel); // Remove the old model if one exists
-            }
+            loaderElement.style.display = 'block';
+            loaderElement.textContent = 'Loading Model...';
 
-            plyLoader.load(url, (geometry) => {
-                geometry.computeVertexNormals(); // Helps with lighting
-                
-                // If the model has its own colors, use them. Otherwise, use a default silver color.
-                const material = new THREE.MeshStandardMaterial({
-                    vertexColors: geometry.hasAttribute('color'),
-                    color: geometry.hasAttribute('color') ? 0xffffff : 0xcccccc,
-                });
+            currentModelMeshes.forEach(mesh => mesh.dispose());
+            currentModelMeshes = [];
 
-                currentModel = new THREE.Mesh(geometry, material);
-                scene.add(currentModel);
+            try {
+                const result = await BABYLON.SceneLoader.ImportMeshAsync("", url, fileName, scene, null, ".ply");
+                currentModelMeshes = result.meshes;
 
-                // Automatically center the camera on the new model
-                const box = new THREE.Box3().setFromObject(currentModel);
-                const center = box.getCenter(new THREE.Vector3());
-                const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const fov = camera.fov * (Math.PI / 180);
-                const cameraDist = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-                
-                camera.position.copy(center);
-                camera.position.z += cameraDist * 1.2; // Move camera back
-                controls.target.copy(center); // Point controls at the model center
-                controls.update();
+                if (currentModelMeshes.length > 0) {
+                    currentModelMeshes.forEach(mesh => {
+                        if (!mesh.parent) {
+                           mesh.rotation.z = Math.PI;
+                        }
+                    });
 
-                loaderElement.style.display = 'none'; // Hide "Loading..." text
-            }, undefined, (error) => {
-                console.error(error);
+                    const mainMesh = currentModelMeshes[0];
+                    mainMesh.computeWorldMatrix(true);
+
+                    const boundingInfo = mainMesh.getHierarchyBoundingVectors();
+                    const size = boundingInfo.max.subtract(boundingInfo.min);
+                    const maxDimension = Math.max(size.x, size.y, size.z);
+
+                    const cameraOffset = maxDimension / Math.tan(camera.fov / 2);
+                    camera.radius = cameraOffset * 1.5;
+                    camera.setTarget(mainMesh.getAbsolutePosition());
+                }
+            } catch (e) {
+                console.error("Error loading model:", e);
                 loaderElement.textContent = 'Error: Could not load model.';
-            });
+            } finally {
+                if (loaderElement.textContent === 'Loading Model...') {
+                     loaderElement.style.display = 'none';
+                }
+            }
+        }
+        
+        // --- Helper functions for URL handling ---
+        
+        // Gets the model name from the URL's query string
+        function getModelFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const modelName = params.get('model');
+            if (modelName && plyFiles.includes(modelName)) {
+                return modelName;
+            }
+            return null;
         }
 
-        // 4. Handle the browser window being resized
-        function onWindowResize() {
-            camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-        }
-
-        // 5. The animation loop: this function runs 60 times per second to redraw the scene
-        function animate() {
-            requestAnimationFrame(animate); // Schedule the next frame
-            controls.update(); // Update camera controls
-            renderer.render(scene, camera); // Render the scene
+        // Updates the URL in the browser without reloading the page
+        function updateURL(fileName) {
+            // --- FIX: Wrap history.pushState in a try...catch block ---
+            // This prevents a SecurityError in sandboxed environments like iframes.
+            try {
+                const url = new URL(window.location);
+                url.searchParams.set('model', fileName);
+                window.history.pushState({ path: url.href }, '', url.href);
+            } catch (e) {
+                console.warn("Could not update URL: " + e.message);
+            }
+            // --- End of Fix ---
         }
 
         // --- Start Everything ---
         init();
-        animate();
-        populateFileList();
-        if (plyFiles.length > 0) {
-            loadModel(plyFiles[0]); // Load the first model in the list by default
-        }
 
     </script>
 </body>
