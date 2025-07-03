@@ -29,6 +29,7 @@
             overflow-y: auto;
             border-right: 1px solid #374151; /* Dark border */
             z-index: 10;
+            transition: transform 0.3s ease-in-out;
         }
         /* Style for the loading text */
         #loader {
@@ -62,7 +63,14 @@
     <!-- Sidebar for the clickable list of files -->
     <div id="sidebar" class="p-4">
         <h1 class="text-2xl font-bold mb-4 text-white">PLY Model Library</h1>
-        <h2 class="text-lg font-semibold mb-4 text-gray-400">Powered by Babylon.js</h2>
+        <h2 class="text-lg font-semibold mb-2 text-gray-400">Powered by Babylon.js</h2>
+        <div class="text-xs text-gray-500 mb-4 p-2 bg-gray-800 rounded">
+            <p><strong>Controls:</strong></p>
+            <p><strong>F Key:</strong> Toggle Fullscreen</p>
+            <p><strong>WASD:</strong> Pan Camera</p>
+            <p><strong>Arrow Keys:</strong> Orbit Camera</p>
+            <p><strong>Mouse:</strong> Orbit/Zoom</p>
+        </div>
         <ul id="model-list" class="space-y-2">
             <!-- The list of your .ply files will be dynamically generated here -->
         </ul>
@@ -80,9 +88,13 @@
         const canvas = document.getElementById('renderCanvas');
         const loaderElement = document.getElementById('loader');
         const modelListElement = document.getElementById('model-list');
+        const sidebar = document.getElementById('sidebar');
 
         // --- Core Babylon.js Components ---
         let engine, scene, camera, currentModelMeshes = [];
+
+        // --- Keyboard Input State ---
+        const inputMap = {};
 
         // --- Data for your models ---
         const plyFiles = [
@@ -101,19 +113,20 @@
 
         // --- Main Functions ---
 
-        // 1. Initialize the Babylon.js engine, scene, and camera
         async function init() {
             engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
             scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color4(0.067, 0.094, 0.153, 1); // Dark blue-gray background
+            scene.clearColor = new BABYLON.Color4(0.067, 0.094, 0.153, 1);
 
             camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 10, new BABYLON.Vector3(0, 0, 0), scene);
             camera.attachControl(canvas, true);
             camera.wheelDeltaPercentage = 0.01;
+            // Removed the line that disabled keyboard inputs
 
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
             light.intensity = 1.2;
 
+            setupKeyboardListeners();
             populateFileList();
             
             const modelToLoad = getModelFromURL() || (plyFiles.length > 0 ? plyFiles[0] : null);
@@ -123,15 +136,22 @@
             }
 
             engine.runRenderLoop(() => {
+                // Pan camera based on WASD input before rendering
+                const panSpeed = 0.5 * (engine.getDeltaTime() / 16); // Frame-rate independent speed
+                const forward = camera.getDirection(BABYLON.Axis.Z);
+                const right = camera.getDirection(BABYLON.Axis.X);
+                
+                if (inputMap["w"] || inputMap["W"]) camera.target.addInPlace(forward.scale(panSpeed));
+                if (inputMap["s"] || inputMap["S"]) camera.target.addInPlace(forward.scale(-panSpeed));
+                if (inputMap["a"] || inputMap["A"]) camera.target.addInPlace(right.scale(-panSpeed));
+                if (inputMap["d"] || inputMap["D"]) camera.target.addInPlace(right.scale(panSpeed));
+
                 scene.render();
             });
 
-            window.addEventListener("resize", () => {
-                engine.resize();
-            });
+            window.addEventListener("resize", () => engine.resize());
         }
 
-        // 2. Create the clickable list of files in the sidebar
         function populateFileList() {
             plyFiles.forEach(fileName => {
                 const displayName = fileName.replace(/_point_cloud\.ply/g, '').replace(/_/g, ' ');
@@ -146,7 +166,6 @@
             });
         }
 
-        // 3. Load a specific .ply model when its name is clicked
         async function loadModel(fileName) {
             const url = repoBaseUrl;
             
@@ -162,9 +181,7 @@
 
                 if (currentModelMeshes.length > 0) {
                     currentModelMeshes.forEach(mesh => {
-                        if (!mesh.parent) {
-                           mesh.rotation.z = Math.PI;
-                        }
+                        if (!mesh.parent) mesh.rotation.z = Math.PI;
                     });
 
                     const mainMesh = currentModelMeshes[0];
@@ -188,9 +205,32 @@
             }
         }
         
-        // --- Helper functions for URL handling ---
-        
-        // Gets the model name from the URL's query string
+        function setupKeyboardListeners() {
+            scene.onKeyboardObservable.add((kbInfo) => {
+                switch (kbInfo.type) {
+                    case BABYLON.KeyboardEventTypes.KEYDOWN:
+                        inputMap[kbInfo.event.key] = true;
+                        // Fullscreen toggle
+                        if (kbInfo.event.key === "f" || kbInfo.event.key === "F") {
+                            engine.switchFullscreen(true);
+                        }
+                        break;
+                    case BABYLON.KeyboardEventTypes.KEYUP:
+                        inputMap[kbInfo.event.key] = false;
+                        break;
+                }
+            });
+
+            // Listener to hide/show sidebar on fullscreen change
+            document.addEventListener("fullscreenchange", () => {
+                if (document.fullscreenElement) {
+                    sidebar.style.transform = "translateX(-100%)";
+                } else {
+                    sidebar.style.transform = "translateX(0)";
+                }
+            });
+        }
+
         function getModelFromURL() {
             const params = new URLSearchParams(window.location.search);
             const modelName = params.get('model');
@@ -200,10 +240,7 @@
             return null;
         }
 
-        // Updates the URL in the browser without reloading the page
         function updateURL(fileName) {
-            // --- FIX: Wrap history.pushState in a try...catch block ---
-            // This prevents a SecurityError in sandboxed environments like iframes.
             try {
                 const url = new URL(window.location);
                 url.searchParams.set('model', fileName);
@@ -211,7 +248,6 @@
             } catch (e) {
                 console.warn("Could not update URL: " + e.message);
             }
-            // --- End of Fix ---
         }
 
         // --- Start Everything ---
